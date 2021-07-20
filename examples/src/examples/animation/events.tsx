@@ -79,7 +79,7 @@ class EventsExample extends Example {
             const colorVec = new pc.Vec3(Math.random(), Math.random(), Math.random());
             colorVec.mulScalar(1 / colorVec.length());
             // @ts-ignore engine-tsd
-            boxes[`${i}${j}`].model.material.emissive = new pc.Color(colorVec.data);
+            boxes[`${i}${j}`].model.material.emissive = new pc.Color(colorVec.x, colorVec.y, colorVec.z);
             highlightedBoxes.push(boxes[`${i}${j}`]);
         };
 
@@ -136,7 +136,7 @@ class EventsExample extends Example {
                 let emissive = box.model.material.emissive;
                 emissive = new pc.Vec3(emissive.r, emissive.g, emissive.b);
                 emissive.scale(0.92);
-                emissive = new pc.Color(emissive.data);
+                emissive = new pc.Color(emissive.r, emissive.g, emissive.b);
                 if (emissive.r < 0.001 && emissive.g < 0.001 && emissive.b < 0.001) {
                     // @ts-ignore engine-tsd
                     box.model.material.emissive = new pc.Color(0, 0, 0);
