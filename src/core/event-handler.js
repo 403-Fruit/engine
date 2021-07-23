@@ -24,7 +24,7 @@ class EventHandler {
         this._callbackActive = { };
     }
 
-    _addCallback(name, callback, scope, once = false) {
+    _addCallback(name, callback, scope, once = false, runAsync = false) {
         if (!name || typeof name !== 'string' || !callback)
             return;
 
@@ -37,7 +37,8 @@ class EventHandler {
         this._callbacks[name].push({
             callback: callback,
             scope: scope || this,
-            once: once
+            once: once,
+            runAsync: runAsync
         });
     }
 
@@ -48,6 +49,7 @@ class EventHandler {
      * @param {string} name - Name of the event to bind the callback to.
      * @param {callbacks.HandleEvent} callback - Function that is called when event is fired. Note the callback is limited to 8 arguments.
      * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to current this.
+     * @param {boolean} [runAsync] - If true, the callback is dispatched asynchronously with setTimeout
      * @returns {EventHandler} Self for chaining.
      * @example
      * obj.on('test', function (a, b) {
@@ -55,8 +57,8 @@ class EventHandler {
      * });
      * obj.fire('test', 1, 2); // prints 3 to the console
      */
-    on(name, callback, scope) {
-        this._addCallback(name, callback, scope, false);
+    on(name, callback, scope, runAsync = false) {
+        this._addCallback(name, callback, scope, false, runAsync);
 
         return this;
     }
@@ -162,10 +164,15 @@ class EventHandler {
         // TODO: What does callbacks do here?
         // In particular this condition check looks wrong: (i < (callbacks || this._callbackActive[name]).length)
         // Because callbacks is not an integer
-        // eslint-disable-next-line no-unmodified-loop-condition
+            // eslint-disable-next-line no-unmodified-loop-condition
         for (let i = 0; (callbacks || this._callbackActive[name]) && (i < (callbacks || this._callbackActive[name]).length); i++) {
             const evt = (callbacks || this._callbackActive[name])[i];
-            evt.callback.call(evt.scope, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+            
+            if (evt.runAsync) {
+                setTimeout(() => evt.callback.call(evt.scope, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8));
+            } else {
+                evt.callback.call(evt.scope, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
+            }
 
             if (evt.once) {
                 // check that callback still exists because user may have unsubscribed
@@ -195,6 +202,7 @@ class EventHandler {
      * @param {string} name - Name of the event to bind the callback to.
      * @param {callbacks.HandleEvent} callback - Function that is called when event is fired. Note the callback is limited to 8 arguments.
      * @param {object} [scope] - Object to use as 'this' when the event is fired, defaults to current this.
+     * @param {boolean} [runAsync] - If true, the callback is dispatched asynchronously with setTimeout
      * @returns {EventHandler} Self for chaining.
      * @example
      * obj.once('test', function (a, b) {
@@ -203,8 +211,8 @@ class EventHandler {
      * obj.fire('test', 1, 2); // prints 3 to the console
      * obj.fire('test', 1, 2); // not going to get handled
      */
-    once(name, callback, scope) {
-        this._addCallback(name, callback, scope, true);
+    once(name, callback, scope, runAsync = false) {
+        this._addCallback(name, callback, scope, true, runAsync);
         return this;
     }
 
